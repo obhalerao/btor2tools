@@ -835,6 +835,7 @@ parse_args (Btor2Parser *bfr, Btor2Line *l, uint32_t nargs)
     i++;
   }
   l->nargs = nargs;
+  l->margs = nargs;
   return 1;
 }
 
@@ -856,6 +857,7 @@ parse_ext_bfr (Btor2Parser *bfr, Btor2Line *l)
     return perr_bfr (bfr, "expected space after first argument");
   if (!parse_pos_number_bfr (bfr, &ext)) return 0;
   l->args[1] = ext;
+  l->margs = l->nargs + 1;
   return 1;
 }
 
@@ -870,6 +872,7 @@ parse_slice_bfr (Btor2Parser *bfr, Btor2Line *l)
   l->args[2] = lower;
   if (lower > l->args[1])
     return perr_bfr (bfr, "lower has to be less than or equal to upper");
+  l->margs = l->nargs + 2;
   return 1;
 }
 
@@ -1245,7 +1248,7 @@ check_state_init (Btor2Parser *bfr, int64_t state_id, int64_t init_id)
   line = id2line_bfr (bfr, init_id);
 
   // 'init_id' is the highest id we will see when traversing down
-  size_t size = (labs (init_id) + 1) * sizeof (char);
+  size_t size = (init_id + 1) * sizeof (char);
   cache       = btor2parser_malloc (size);
   memset (cache, 0, size);
 
@@ -1324,6 +1327,7 @@ parse_constraint_bfr (Btor2Parser *bfr, Btor2Line *l)
   if (arg->tag == BTOR2_TAG_sort)
     return perr_bfr (bfr, "unexpected sort id after tag");
   l->nargs = 1;
+  l->margs = 1;
   return 1;
 }
 
@@ -1334,6 +1338,7 @@ parse_justice_bfr (Btor2Parser *bfr, Btor2Line *l)
   if (!parse_pos_number_bfr (bfr, &nargs)) return 0;
   l->args  = btor2parser_realloc (l->args, sizeof (int64_t) * nargs);
   l->nargs = nargs;
+  l->margs = nargs;
   if (!parse_args (bfr, l, nargs)) return 0;
   return 1;
 }
